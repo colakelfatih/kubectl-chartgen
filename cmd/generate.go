@@ -39,17 +39,19 @@ var GenerateCmd = &cobra.Command{
 		
 		fmt.Printf("Found %d resources\n", len(resources))
 		
-		// Parse to Helm values
+		// Parse to multiple Helm values (one per service)
 		fmt.Println("Converting to Helm values structure...")
-		values, err := parser.ParseToHelmValues(resources)
+		serviceValues, err := parser.ParseToMultipleHelmValues(resources)
 		if err != nil {
 			fmt.Printf("Error parsing resources: %v\n", err)
 			os.Exit(1)
 		}
 		
+		fmt.Printf("Generated values for %d services\n", len(serviceValues))
+		
 		// Generate YAML
 		fmt.Println("Generating YAML output...")
-		yamlOutput, err := parser.GenerateYAML(values)
+		yamlOutput, err := parser.GenerateMultipleYAML(serviceValues)
 		if err != nil {
 			fmt.Printf("Error generating YAML: %v\n", err)
 			os.Exit(1)

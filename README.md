@@ -47,7 +47,7 @@ chmod +x kubectl-chartgen
 
 # Move to kubectl plugins directory
 mkdir -p ~/.kube/plugins/chartgen
-mv kubectl-chartgen ~/.kube/plugins/chartgen/
+mv kubectl-chartgen /usr/local/bin/
 ```
 
 ## 📖 Usage
@@ -59,23 +59,23 @@ mv kubectl-chartgen ~/.kube/plugins/chartgen/
 go run main.go generate
 
 # Or if installed as binary
-chartgen generate
+kubectl chartgen generate
 ```
 
 ### Advanced Usage
 
 ```bash
 # Generate from specific namespace
-chartgen generate -n my-app-namespace
+kubectl chartgen generate -n my-app-namespace
 
 # Output to specific file
-chartgen generate -o my-helm-values.yaml
+kubectl chartgen generate -o my-helm-values.yaml
 
 # Output to stdout
-chartgen generate -o -
+kubectl chartgen generate -o -
 
 # Combine options
-chartgen generate -n production -o prod-values.yaml
+kubectl chartgen generate -n production -o prod-values.yaml
 ```
 
 ### Command Options
@@ -92,7 +92,7 @@ chartgen generate -n production -o prod-values.yaml
 
 ```bash
 # Generate values.yaml from current namespace
-chartgen generate
+kubectl chartgen generate
 ```
 
 **Output:**
@@ -109,14 +109,14 @@ Helm values written to: values.yaml
 
 ```bash
 # Generate from 'production' namespace
-chartgen generate -n production -o prod-values.yaml
+kubectl chartgen generate -n production -o prod-values.yaml
 ```
 
 ### Example 3: Preview Output
 
 ```bash
 # Preview the generated values without saving
-chartgen generate -o -
+kubectl chartgen generate -o -
 ```
 
 **Sample Output:**
