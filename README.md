@@ -101,6 +101,7 @@ Generating Helm values.yaml from Kubernetes resources...
 Fetching Kubernetes resources...
 Found 3 resources
 Converting to Helm values structure...
+Generated values for 2 services
 Generating YAML output...
 Helm values written to: values.yaml
 ```
@@ -119,20 +120,113 @@ kubectl chartgen generate -n production -o prod-values.yaml
 kubectl chartgen generate -o -
 ```
 
-**Sample Output:**
+## 🎯 Example Output Format
+
+The tool generates Helm-compatible `values.yaml` files with the following structure:
+
 ```yaml
-image:
-  repository: nginx
-  tag: "1.21"
-service:
-  type: ClusterIP
-  port: 80
-ingress:
-  enabled: true
-  hosts:
-    - myapp.example.com
-replicaCount: 3
+# Frontend Application
+frontend:
+  replicas: 2
+  image:
+    repository: myapp/frontend
+    tag: "1.2.3"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      - 80
+      - 443
+  environment:
+    NODE_ENV: production
+    API_URL: https://api.example.com
+    CDN_URL: https://cdn.example.com
+    GA_TRACKING_ID: GA-123456789
+  ingress:
+    enabled: true
+    host: app.example.com
+    hosts:
+      - app.example.com
+      - www.example.com
+    targetPort: 80
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+  volumes:
+    - name: config-volume
+      type: configMap
+  volumeMounts:
+    - name: config-volume
+      mountPath: /app/config
+
+---
+
+# Backend API Service
+backend:
+  replicas: 3
+  image:
+    repository: myapp/backend
+    tag: "2.1.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    ports:
+      - 8080
+  environment:
+    DATABASE_URL: postgresql://postgres:5432/myapp
+    REDIS_URL: redis://redis:6379
+    JWT_SECRET: your-super-secret-jwt-key
+
+---
+
+# Worker Service (no service/ingress)
+worker:
+  replicas: 2
+  image:
+    repository: myapp/worker
+    tag: "2.1.0"
+    pullPolicy: IfNotPresent
+  environment:
+    DATABASE_URL: postgresql://postgres:5432/myapp
+    REDIS_URL: redis://redis:6379
+    QUEUE_NAME: email-queue
 ```
+
+### 📊 Supported Fields
+
+| Field | Description | When Included |
+|-------|-------------|---------------|
+| `replicas` | Number of pod replicas | Always |
+| `image.repository` | Container image repository | Always |
+| `image.tag` | Container image tag | Always |
+| `image.pullPolicy` | Image pull policy | Always |
+| `service.type` | Kubernetes service type | Only if service exists |
+| `service.ports` | Array of service ports | Only if service exists |
+| `environment` | Environment variables | Only if environment variables exist |
+| `ingress.enabled` | Ingress enabled status | Only if ingress exists |
+| `ingress.host` | Primary ingress host | Only if ingress exists |
+| `ingress.hosts` | Array of ingress hosts | Only if ingress exists |
+| `ingress.targetPort` | Target port for ingress | Only if ingress exists |
+| `resources.limits` | CPU/Memory limits | Only if resource limits exist |
+| `resources.requests` | CPU/Memory requests | Only if resource requests exist |
+| `volumes` | Volume configurations | Only if volumes exist |
+| `volumeMounts` | Volume mount points | Only if volume mounts exist |
+
+### 🔧 Smart Field Detection
+
+The tool intelligently includes only relevant fields:
+
+- **Service fields** are only included if a Kubernetes Service exists
+- **Environment variables** are only included if they are defined in the deployment
+- **Ingress configuration** is only included if an Ingress resource exists
+- **Resource limits/requests** are only included if they are defined
+- **Volumes and volume mounts** are only included if they are configured
+
+For a complete example with all features, see [`example-values.yaml`](example-values.yaml).
 
 ## 🏗️ Project Structure
 
@@ -145,6 +239,7 @@ chartgen/
 │   └── parser.go         # Kubernetes to Helm conversion logic
 ├── go.mod               # Go module file
 ├── go.sum               # Dependency checksums
+├── example-values.yaml  # Example output format
 └── README.md            # This file
 ```
 
@@ -158,7 +253,7 @@ chartgen/
 
 ### Supported Resource Types
 
-- **Deployments**: Extracts image repository, tag, and replica count
+- **Deployments**: Extracts image repository, tag, replica count, environment variables, resources, volumes
 - **Services**: Extracts service type and port configuration
 - **Ingresses**: Extracts host names and enables ingress configuration
 
