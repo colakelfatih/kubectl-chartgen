@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -90,6 +91,7 @@ type K8sResource struct {
 type Parser struct {
 	namespace string
 	kubeconfig string
+	insecureSkipTLSVerify bool
 }
 
 // NewParser creates a new parser instance
@@ -100,10 +102,11 @@ func NewParser(namespace string) *Parser {
 }
 
 // NewParserWithKubeconfig creates a new parser instance with kubeconfig
-func NewParserWithKubeconfig(namespace, kubeconfig string) *Parser {
+func NewParserWithKubeconfig(namespace, kubeconfig string, insecureSkipTLSVerify bool) *Parser {
 	return &Parser{
 		namespace: namespace,
 		kubeconfig: kubeconfig,
+		insecureSkipTLSVerify: insecureSkipTLSVerify,
 	}
 }
 
@@ -143,6 +146,11 @@ func (p *Parser) getResources(resourceType string) ([]K8sResource, error) {
 	// Add kubeconfig if specified
 	if p.kubeconfig != "" {
 		args = append([]string{"--kubeconfig", p.kubeconfig}, args...)
+	}
+	
+	// Add --insecure-skip-tls-verify if specified
+	if p.insecureSkipTLSVerify {
+		args = append(args, "--insecure-skip-tls-verify")
 	}
 	
 	// Add namespace if specified

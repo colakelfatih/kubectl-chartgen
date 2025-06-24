@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
 	"chartgen/internal"
+
+	"github.com/spf13/cobra"
 )
 
 var GenerateCmd = &cobra.Command{
@@ -16,6 +17,7 @@ var GenerateCmd = &cobra.Command{
 		outputFile, _ := cmd.Flags().GetString("output")
 		namespace, _ := cmd.Flags().GetString("namespace")
 		kubeconfig, _ := cmd.Flags().GetString("kubeconfig")
+		insecureSkipTLSVerify, _ := cmd.Flags().GetBool("insecure-skip-tls-verify")
 		
 		fmt.Printf("Generating Helm values.yaml from Kubernetes resources...\n")
 		if namespace != "" {
@@ -28,7 +30,7 @@ var GenerateCmd = &cobra.Command{
 		// Create parser with or without kubeconfig
 		var parser *internal.Parser
 		if kubeconfig != "" {
-			parser = internal.NewParserWithKubeconfig(namespace, kubeconfig)
+			parser = internal.NewParserWithKubeconfig(namespace, kubeconfig, insecureSkipTLSVerify)
 		} else {
 			parser = internal.NewParser(namespace)
 		}
@@ -85,4 +87,5 @@ func init() {
 	GenerateCmd.Flags().StringP("output", "o", "values.yaml", "Output file path (use '-' for stdout)")
 	GenerateCmd.Flags().StringP("namespace", "n", "", "Target namespace (default: current)")
 	GenerateCmd.Flags().StringP("kubeconfig", "k", "", "Path to kubeconfig file")
+	GenerateCmd.Flags().Bool("insecure-skip-tls-verify", false, "Skip TLS certificate verification when connecting to the Kubernetes API server")
 } 

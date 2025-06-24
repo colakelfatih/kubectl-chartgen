@@ -10,6 +10,8 @@ A powerful kubectl plugin that automatically generates Helm `values.yaml` files 
 - 💾 **Flexible Output**: Save to file or output to stdout
 - 🛡️ **Error Handling**: Comprehensive error handling and user feedback
 - ⚡ **Fast & Lightweight**: Built with Go for optimal performance
+- 🔐 **Secure Connections**: Support for insecure TLS connections with `--insecure-skip-tls-verify`
+- 🌐 **Remote Cluster Support**: Connect to remote Kubernetes clusters with custom kubeconfig files
 
 ## 🚀 Installation
 
@@ -47,7 +49,12 @@ chmod +x kubectl-chartgen
 
 # Move to kubectl plugins directory
 mv kubectl-chartgen /usr/local/bin/
+
+# Verify installation
+kubectl chartgen --help
 ```
+
+**Note**: The plugin will be available as `kubectl chartgen` after installation.
 
 ## 📖 Usage
 
@@ -127,15 +134,34 @@ kubectl chartgen generate -o -
 kubectl --kubeconfig=/path/to/prod-cluster.yaml chartgen generate -n production -o prod-values.yaml
 ```
 
+### Remote Cluster Connections
+
+When connecting to remote Kubernetes clusters, you might encounter TLS certificate verification issues. Use the `--insecure-skip-tls-verify` flag to bypass certificate verification:
+
+```bash
+# Connect to remote cluster with insecure TLS
+kubectl chartgen generate --kubeconfig /path/to/remote-kubeconfig.yaml --insecure-skip-tls-verify
+
+# With specific namespace
+kubectl chartgen generate --kubeconfig /path/to/remote-kubeconfig.yaml --insecure-skip-tls-verify -n my-namespace
+
+# Output to file
+kubectl chartgen generate --kubeconfig /path/to/remote-kubeconfig.yaml --insecure-skip-tls-verify -o remote-values.yaml
+```
+
+**⚠️ Security Note**: Use `--insecure-skip-tls-verify` only when you trust the remote cluster and understand the security implications.
+
 ### Command Options
 
 | Flag | Short | Description | Default |
 |------|-------|-------------|---------|
 | `--namespace` | `-n` | Target namespace (default: current) | current context |
 | `--output` | `-o` | Output file path (use `-` for stdout) | `values.yaml` |
+| `--kubeconfig` | `-k` | Path to kubeconfig file | default kubeconfig |
+| `--insecure-skip-tls-verify` | - | Skip TLS certificate verification | false |
 | `--help` | `-h` | Show help information | - |
 
-**Note**: You can also use standard kubectl flags like `--kubeconfig`, `--context`, `--cluster`, and `--user` to target different Kubernetes clusters.
+**Note**: You can also use standard kubectl flags like `--context`, `--cluster`, and `--user` to target different Kubernetes clusters.
 
 ## 📋 Examples
 
@@ -169,6 +195,79 @@ kubectl chartgen generate -n production -o prod-values.yaml
 ```bash
 # Preview the generated values without saving
 kubectl chartgen generate -o -
+```
+
+### Example 4: Remote Cluster with Insecure TLS
+
+```bash
+# Connect to remote cluster with TLS verification disabled
+kubectl chartgen generate --kubeconfig /path/to/remote-cluster.yaml --insecure-skip-tls-verify -n my-app
+```
+
+**Output:**
+```
+Generating Helm values.yaml from Kubernetes resources...
+Target namespace: my-app
+Using kubeconfig: /path/to/remote-cluster.yaml
+Fetching Kubernetes resources...
+Found 5 resources
+Converting to Helm values structure...
+Generated values for 3 services
+Generating YAML output...
+Helm values written to: values.yaml
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### 1. TLS Certificate Verification Errors
+
+**Error**: `tls: failed to verify certificate: x509: certificate signed by unknown authority`
+
+**Solution**: Use the `--insecure-skip-tls-verify` flag:
+
+```bash
+kubectl chartgen generate --kubeconfig /path/to/kubeconfig.yaml --insecure-skip-tls-verify
+```
+
+#### 2. Permission Denied Errors
+
+**Error**: `Error from server (Forbidden): deployments.apps is forbidden`
+
+**Solution**: Check your user permissions and target a namespace you have access to:
+
+```bash
+# Check your permissions
+kubectl auth can-i list deployments
+
+# Use a specific namespace you have access to
+kubectl chartgen generate -n your-accessible-namespace
+```
+
+#### 3. Cluster Connection Issues
+
+**Error**: `Unable to connect to the server: dial tcp: no route to host`
+
+**Solution**: 
+- Ensure your cluster is running (e.g., `minikube start` for local clusters)
+- Check your kubeconfig file is correct
+- Verify network connectivity to the cluster
+
+#### 4. Plugin Not Found
+
+**Error**: `kubectl chartgen: command not found`
+
+**Solution**: Ensure the plugin is properly installed:
+
+```bash
+# Build and install
+go build -o kubectl-chartgen main.go
+chmod +x kubectl-chartgen
+sudo mv kubectl-chartgen /usr/local/bin/
+
+# Verify installation
+kubectl chartgen --help
 ```
 
 ## 🎯 Example Output Format
