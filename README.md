@@ -46,7 +46,6 @@ go build -o kubectl-chartgen main.go
 chmod +x kubectl-chartgen
 
 # Move to kubectl plugins directory
-mkdir -p ~/.kube/plugins/chartgen
 mv kubectl-chartgen /usr/local/bin/
 ```
 
