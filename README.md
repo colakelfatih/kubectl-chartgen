@@ -62,6 +62,56 @@ go run main.go generate
 kubectl chartgen generate
 ```
 
+### Using Different Kubeconfig Files
+
+#### Method 1: Using KUBECONFIG Environment Variable
+
+```bash
+# Set kubeconfig for a specific cluster
+export KUBECONFIG=/path/to/your/kubeconfig.yaml
+kubectl chartgen generate
+
+# Or use inline
+KUBECONFIG=/path/to/production-kubeconfig.yaml kubectl chartgen generate
+```
+
+#### Method 2: Using --kubeconfig Flag
+
+```bash
+# Specify kubeconfig file directly
+kubectl --kubeconfig=/path/to/your/kubeconfig.yaml chartgen generate
+
+# Generate from specific namespace in different cluster
+kubectl --kubeconfig=/path/to/production-kubeconfig.yaml chartgen generate -n production
+```
+
+#### Method 3: Using Different Contexts
+
+```bash
+# List available contexts
+kubectl config get-contexts
+
+# Switch to a specific context
+kubectl config use-context production-cluster
+
+# Generate using current context
+kubectl chartgen generate
+
+# Or use context inline
+kubectl --context=production-cluster chartgen generate
+```
+
+#### Method 4: Multiple Kubeconfig Files
+
+```bash
+# Combine multiple kubeconfig files
+export KUBECONFIG=/path/to/cluster1.yaml:/path/to/cluster2.yaml
+
+# Generate from specific cluster
+kubectl --context=cluster1 chartgen generate -n default
+kubectl --context=cluster2 chartgen generate -n production
+```
+
 ### Advanced Usage
 
 ```bash
@@ -74,8 +124,8 @@ kubectl chartgen generate -o my-helm-values.yaml
 # Output to stdout
 kubectl chartgen generate -o -
 
-# Combine options
-kubectl chartgen generate -n production -o prod-values.yaml
+# Combine options with different kubeconfig
+kubectl --kubeconfig=/path/to/prod-cluster.yaml chartgen generate -n production -o prod-values.yaml
 ```
 
 ### Command Options
@@ -85,6 +135,8 @@ kubectl chartgen generate -n production -o prod-values.yaml
 | `--namespace` | `-n` | Target namespace (default: current) | current context |
 | `--output` | `-o` | Output file path (use `-` for stdout) | `values.yaml` |
 | `--help` | `-h` | Show help information | - |
+
+**Note**: You can also use standard kubectl flags like `--kubeconfig`, `--context`, `--cluster`, and `--user` to target different Kubernetes clusters.
 
 ## 📋 Examples
 
@@ -269,7 +321,7 @@ chartgen/
 
 ```bash
 # Clone and setup
-git clone https://github.com/yourusername/kubectl-chartgen.git
+git clone https://github.com/colakelfatih/kubectl-chartgen.git
 cd kubectl-chartgen
 
 # Install dependencies

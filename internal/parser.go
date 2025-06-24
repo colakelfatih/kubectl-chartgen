@@ -89,12 +89,21 @@ type K8sResource struct {
 // Parser handles the conversion from Kubernetes resources to Helm values
 type Parser struct {
 	namespace string
+	kubeconfig string
 }
 
 // NewParser creates a new parser instance
 func NewParser(namespace string) *Parser {
 	return &Parser{
 		namespace: namespace,
+	}
+}
+
+// NewParserWithKubeconfig creates a new parser instance with kubeconfig
+func NewParserWithKubeconfig(namespace, kubeconfig string) *Parser {
+	return &Parser{
+		namespace: namespace,
+		kubeconfig: kubeconfig,
 	}
 }
 
@@ -129,11 +138,19 @@ func (p *Parser) GetK8sResources() ([]K8sResource, error) {
 // getResources fetches a specific type of Kubernetes resource
 func (p *Parser) getResources(resourceType string) ([]K8sResource, error) {
 	var cmd *exec.Cmd
-	if p.namespace != "" {
-		cmd = exec.Command("kubectl", "get", resourceType, "-n", p.namespace, "-o", "json")
-	} else {
-		cmd = exec.Command("kubectl", "get", resourceType, "-o", "json")
+	args := []string{"get", resourceType, "-o", "json"}
+	
+	// Add kubeconfig if specified
+	if p.kubeconfig != "" {
+		args = append([]string{"--kubeconfig", p.kubeconfig}, args...)
 	}
+	
+	// Add namespace if specified
+	if p.namespace != "" {
+		args = append(args, "-n", p.namespace)
+	}
+	
+	cmd = exec.Command("kubectl", args...)
 	
 	output, err := cmd.Output()
 	if err != nil {

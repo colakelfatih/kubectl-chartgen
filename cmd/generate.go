@@ -15,14 +15,23 @@ var GenerateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		outputFile, _ := cmd.Flags().GetString("output")
 		namespace, _ := cmd.Flags().GetString("namespace")
+		kubeconfig, _ := cmd.Flags().GetString("kubeconfig")
 		
 		fmt.Printf("Generating Helm values.yaml from Kubernetes resources...\n")
 		if namespace != "" {
 			fmt.Printf("Target namespace: %s\n", namespace)
 		}
+		if kubeconfig != "" {
+			fmt.Printf("Using kubeconfig: %s\n", kubeconfig)
+		}
 		
-		// Create parser
-		parser := internal.NewParser(namespace)
+		// Create parser with or without kubeconfig
+		var parser *internal.Parser
+		if kubeconfig != "" {
+			parser = internal.NewParserWithKubeconfig(namespace, kubeconfig)
+		} else {
+			parser = internal.NewParser(namespace)
+		}
 		
 		// Get Kubernetes resources
 		fmt.Println("Fetching Kubernetes resources...")
@@ -75,4 +84,5 @@ func init() {
 	// Add flags here if needed
 	GenerateCmd.Flags().StringP("output", "o", "values.yaml", "Output file path (use '-' for stdout)")
 	GenerateCmd.Flags().StringP("namespace", "n", "", "Target namespace (default: current)")
+	GenerateCmd.Flags().StringP("kubeconfig", "k", "", "Path to kubeconfig file")
 } 
